@@ -79,8 +79,12 @@ module.exports = (db, ln) => {
       !err ? { requested_at: now(), success: true,  resp_code: res.status }
            : { requested_at: now(), success: false, resp_error: err })
 
-  return { newInvoice, listInvoices, fetchInvoice
+  const pay = (invoice) => {
+    var paid = ln.pay(invoice);
+    paid;
+  }
+return { newInvoice, listInvoices, fetchInvoice
          , getLastPaid, markPaid, delExpired
-         , addHook, getHooks, logHook }
+         , addHook, getHooks, logHook, pay }
 }
 
