@@ -27,21 +27,26 @@ const apiToken = process.env.API_TOKEN || (console.error('Please configure your 
   app.use(require('body-parser').urlencoded({ extended: true }))
 
   app.get('/info', auth, wrap(async (req, res) => res.send(await ln.getinfo())))
-
+  
   require('./invoicing')(app, payListen, model, auth)
   require('./checkout')(app, payListen)
 
   require('./sse')(app, payListen, auth)
   require('./webhook')(app, payListen, model, auth)
-  require('./websocket')(app, payListen)
+  var ws = require('./websocket')(app, payListen, ln)
 
   app.use((err, req, res, next) =>
     err.name == 'LightningError' ? res.status(err.status || 400).send(err.toString())
   : next(err)
-  )
+  );
+
+  ws.start();
 
   const server = app.listen(app.settings.port, app.settings.host, _ => {
     console.log(`HTTP server running on ${ app.settings.host }:${ app.settings.port }`)
     app.emit('listening', server)
   })
+
+
+
 })()
