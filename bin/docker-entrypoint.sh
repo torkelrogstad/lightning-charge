@@ -11,9 +11,7 @@ trap 'kill `jobs -p`' SIGTERM
 if [ -d /etc/lightning ]; then
   echo -n "Using lightningd directory mounted in /etc/lightning... "
   LN_PATH=/etc/lightning
-
-else
-
+else 
   # Setup bitcoind (only needed when we're starting our own lightningd instance)
   if [ -d /etc/bitcoin ]; then
     echo -n "Connecting to bitcoind configured in /etc/bitcoin... "
@@ -49,7 +47,7 @@ else
   fi
 
   echo -n "waiting for RPC... "
-  bitcoin-cli -$NETWORK $RPC_OPT -rpcwait getblockchaininfo > /dev/null
+  bitcoin-cli -$NETWORK $RPC_OPT -rpcwait getblockchaininfo
   echo "ready."
 
   # Setup lightning
@@ -60,8 +58,10 @@ else
 
   lnopt=($LIGHTNINGD_OPT --network=$NETWORK --lightning-dir="$LN_PATH" --log-file=debug.log)
   [[ -z "$LN_ALIAS" ]] || lnopt+=(--alias="$LN_ALIAS")
-
-  lightningd "${lnopt[@]}" $(echo "$RPC_OPT" | sed -r 's/(^| )-/\1--bitcoin-/g') > /dev/null &
+  echo "lnopt" 
+  echo $lnopt
+  echo "really starting lightningd"
+  lightningd "${lnopt[@]}" $(echo "$RPC_OPT" | sed -r 's/(^| )-/\1--bitcoin-/g') &
 fi
 
 if [ ! -S /etc/lightning/lightning-rpc ]; then
@@ -69,13 +69,26 @@ if [ ! -S /etc/lightning/lightning-rpc ]; then
   sed --quiet '/^lightning-rpc$/ q' <(inotifywait -e create,moved_to --format '%f' -qm $LN_PATH)
 fi
 
-lightning-cli --lightning-dir=$LN_PATH getinfo > /dev/null
+lightning-cli --lightning-dir=$LN_PATH getinfo
+
+lightning-cli --lightning-dir=$LN_PATH connect 0338f57e4e20abf4d5c86b71b59e995ce4378e373b021a7b6f41dabb42d3aad069 ln.test.suredbits.com
+
+echo "Fund this address for your lighning network wallet from: https://testnet.manu.backend.hamburg/faucet"
+lightning-cli --lightning-dir=$LN_PATH newaddr
+
+echo "After funds have received 1 confirmation, you need to run this command to open the channel"
+
+echo "$lightning-cli --lightning-dir=$LN_PATH fundchannel 0338f57e4e20abf4d5c86b71b59e995ce4378e373b021a7b6f41dabb42d3aad069 100000"
+
+echo -n "Bitcoin blockchain at height: "
+
+bitcoin-cli -$NETWORK $RPC_OPT getblockcount
 
 echo "ready."
 
-echo "Starting Lightning Charge"
-DEBUG=$DEBUG,lightning-charge,lightning-client \
-charged -d /data/charge.db -l $LN_PATH -i 0.0.0.0 $@ $CHARGED_OPTS &
+#echo "Starting Lightning Charge :o)"
+#DEBUG=$DEBUG,lightning-charge,lightning-client \
+#charged -d /data/charge.db -l $LN_PATH -i 0.0.0.0 $@ $CHARGED_OPTS &
 
 # shutdown the entire process when any of the background jobs exits (even if successfully)
 wait -n
