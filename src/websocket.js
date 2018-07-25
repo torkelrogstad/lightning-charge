@@ -4,7 +4,9 @@ import basicAuth from 'basic-auth'
 const accessToken = process.env.API_TOKEN
 
 var ws = require('ws');
-var WebSocketClient = require('websocket').client;
+const W3CWebSocket = require('websocket').w3cwebsocket;
+const WebSocketAsPromised = require('websocket-as-promised');
+
 module.exports = (app, payListen, ln) => {
   const verifyClient = info => {
     const cred = basicAuth(info.req)
@@ -23,9 +25,22 @@ module.exports = (app, payListen, ln) => {
   })
 
   const start = _ => {
-    var client = new WebSocketClient();
     var sb_client = require('./sb_websocket_client.js')(ln);
-    client.on('connect', function(connection) {
+    const wsUrl = "wss://test.api.suredbits.com/nfl/v0"; 
+    const client = new W3CWebSocket(wsUrl);
+    const wsp = new WebSocketAsPromised(wsUrl, {
+      createWebSocket: url => new W3CWebSocket(url)
+    });
+
+    wsp.onMessage.addListener(message => sb_client.handleMsg(message));
+
+    
+    wsp.open()
+    .then(() => sb_client.sendInfoMsg(wsp));
+
+
+    //client.connect("wss://test.api.suredbits.com/nfl/v0");
+    /*wsp.onOpen(function(connection) {
       console.log('WebSocket Client Connected'); 
 
       connection.on('error', function(error) {
@@ -47,9 +62,8 @@ module.exports = (app, payListen, ln) => {
 
       sb_client.sendInfoMsg(connection);
       wait10sec();
-    });
+    }); */
 
-    client.connect("wss://test.api.suredbits.com/nfl/v0");
   }
 
   return { start };

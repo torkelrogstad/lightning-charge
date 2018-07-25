@@ -8,7 +8,8 @@ module.exports = (ln) => {
   var week = null;
 
   const handleMsg = message => {
-    const json = JSON.parse(message.utf8Data)
+    console.log("handleMsg " + message);
+    const json = JSON.parse(message)
     if (json.hasOwnProperty('invoice')) {
       pay(json['invoice']);
     } else if (json.hasOwnProperty('seasonType')) {
