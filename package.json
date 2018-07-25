@@ -32,6 +32,7 @@
     "sqlite3": "^4.0.1",
     "superagent": "^3.8.3",
     "websocket": "^1.0.26",
+    "websocket-as-promised": "^0.8.0",
     "ws": "^5.2.2"
   },
   "devDependencies": {
