@@ -25,44 +25,37 @@ module.exports = (app, payListen, ln) => {
   })
 
   const start = _ => {
-    var sb_client = require('./sb_websocket_client.js')(ln);
-    const wsUrl = "wss://test.api.suredbits.com/nfl/v0"; 
+    const sb_client = require('./sb_websocket_client.js')(ln);
+    const uuidv1 = require('uuid/v1');
+    const wsUrl = "ws://localhost:8072/nfl/v0"; 
+    //const wsUrl = "wss://test.api.suredbits.com/nfl/v0"; 
     const client = new W3CWebSocket(wsUrl);
     const wsp = new WebSocketAsPromised(wsUrl, {
-      createWebSocket: url => new W3CWebSocket(url)
+      createWebSocket: url => new W3CWebSocket(url),
+      packMessage: data => {
+        const stringify = JSON.stringify(data);
+         console.log("packMessage stringify " + stringify);
+         return stringify;
+       },
+      unpackMessage: message => {
+        const parse = JSON.parse(message);
+        return parse;
+      },
+      attachRequestId: (data,requestId) => {
+        const result = Object.assign({uuid: requestId}, data) // attach requestId to message as `id` field
+        return result;
+      },
+      extractRequestId: data => {
+        return data.uuid;
+      },   // read requestId from message `id` field
     });
 
-    wsp.onMessage.addListener(message => sb_client.handleMsg(message));
+    //wsp.onMessage.addListener(message => sb_client.handleMsg(message));
 
     
     wsp.open()
-    .then(() => sb_client.sendInfoMsg(wsp));
-
-
-    //client.connect("wss://test.api.suredbits.com/nfl/v0");
-    /*wsp.onOpen(function(connection) {
-      console.log('WebSocket Client Connected'); 
-
-      connection.on('error', function(error) {
-        console.log("Connection Error: " + error.toString());
-      });
-
-      connection.on('close', function() {
-        console.log('echo-protocol Connection Closed');
-      });
-
-      connection.on('message', sb_client.handleMsg);
-
-
-      function wait10sec() { 
-        setInterval(function() { 
-          sb_client.sendInfoMsg(connection);
-        }, 10000);
-      }
-
-      sb_client.sendInfoMsg(connection);
-      wait10sec();
-    }); */
+    .then(() => sb_client.info(wsp))
+    .then(msg => console.log("\nreturned type: " + JSON.stringify(msg) + "\n"));
 
   }
 
