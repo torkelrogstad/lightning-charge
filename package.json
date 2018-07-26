@@ -31,6 +31,7 @@
     "qrcode": "^1.2.0",
     "sqlite3": "^4.0.1",
     "superagent": "^3.8.3",
+    "uuid": "^3.3.2",
     "websocket": "^1.0.26",
     "websocket-as-promised": "^0.8.0",
     "ws": "^5.2.2"
