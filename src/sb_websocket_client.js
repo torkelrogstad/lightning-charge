@@ -27,9 +27,11 @@ module.exports = (ln) => {
   const sendMessage = (wsp, msg) => {
     const uuidv1 = require('uuid/v1');
     const invoiceId = uuidv1();
-    const invoiceP = wsp.sendRequest({"channel" : "info"}, {requestId: invoiceId});
+    const invoiceP = wsp.sendRequest(msg, {requestId: invoiceId});
+    invoiceP.then(invoice => console.log("LN Invoice : " + JSON.stringify(invoice) + "\n"));
     const payLoadP = invoiceP.then(() => createSyntheticRequest(wsp, invoiceId)); 
     const paidP = invoiceP.then(i => pay(i)); 
+    paidP.then(p => console.log("LN Invoice Payment: " + JSON.stringify(p) + "\n"));
     return payLoadP;
   }
   
@@ -46,12 +48,73 @@ module.exports = (ln) => {
 
   const pay = payload=> {
     const invoice = payload['invoice'];
-    const paid = ln.pay(invoice);
+    var paid = null;
+    try {
+      paid = ln.pay(invoice);
+    } catch (e) {
+      console.log("error paying invoice");
+      console.log("response from sb-api " + payload);
+      throw e;
+    }
     return paid; 
   }
 
-  /*const games = (week,seasonPhase,year,teamId) => {
-  }*/
+  const team_roster = (wsp, teamId) => {
+    const msg = {
+      "channel" : "team",
+      "teamId" : teamId,
+      "retrieve" : "roster"
+    };
+
+    return sendMessage(wsp,msg);
+  }
   
-  return { info };
+  const team_schedule = (wsp, teamId, year) => {
+    const msg = {
+      "channel" : "team",
+      "teamId" : teamId,
+      "retrieve" : "schedule",
+      "year" : year
+    };
+    return sendMessage(wsp,msg);
+  }
+
+  const games = (wsp,week,seasonPhase,year,teamId) => {
+    const msg = {
+      "channel" : "games",
+      "week" : week,
+      "seasonPhase" : seasonPhase,
+      "year" : year,
+      "teamId": teamId,
+      "realtime" : false,
+    };
+    return sendMessage(wsp,msg);
+  }
+
+  const realtime_games = (wsp, week, seasonPhase,year,teamId) => { 
+    const msg = {
+      "channel" : "games",
+      "week" : week,
+      "seasonPhase" : seasonPhase,
+      "year" : year,
+      "teamId": teamId,
+      "realtime" : true,
+    };
+    return sendMessage(wsp,msg);
+  }
+  
+  const player = (wsp, lastname,firstname) => {
+    const msg = {
+      "channel" : "players", 
+      "lastName" : lastname, 
+      "firstName" : firstname 
+    };
+    return sendMessage(wsp,msg);
+  }
+  return { info, 
+    team_roster, team_schedule, 
+    games, realtime_games, 
+    player
+  };
+
 }

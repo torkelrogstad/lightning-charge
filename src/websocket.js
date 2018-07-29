@@ -27,7 +27,7 @@ module.exports = (app, payListen, ln) => {
   const start = _ => {
     const sb_client = require('./sb_websocket_client.js')(ln);
     const uuidv1 = require('uuid/v1');
-    const wsUrl = "ws://localhost:8072/nfl/v0"; 
+    const wsUrl = "wss://test.api.suredbits.com/nfl/v0"; 
     //const wsUrl = "wss://test.api.suredbits.com/nfl/v0"; 
     const client = new W3CWebSocket(wsUrl);
     const wsp = new WebSocketAsPromised(wsUrl, {
@@ -42,21 +42,26 @@ module.exports = (app, payListen, ln) => {
         return parse;
       },
       attachRequestId: (data,requestId) => {
-        const result = Object.assign({uuid: requestId}, data) // attach requestId to message as `id` field
+        const result = Object.assign({uuid: requestId}, data);
         return result;
       },
       extractRequestId: data => {
         return data.uuid;
-      },   // read requestId from message `id` field
+      },
     });
 
-    //wsp.onMessage.addListener(message => sb_client.handleMsg(message));
 
     
     wsp.open()
-    .then(() => sb_client.info(wsp))
-    .then(msg => console.log("\nreturned type: " + JSON.stringify(msg) + "\n"));
+    .then(() => infoEvery30sec(wsp))
 
+    function infoEvery30sec(wsp) {
+      setInterval(function () {
+        return sb_client.info(wsp)
+          .then(msg => console.log("\nAPI result: " + JSON.stringify(msg) + "\n"));
+
+      },5000);
+    }
   }
 
   return { start };
