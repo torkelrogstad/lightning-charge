@@ -47,17 +47,21 @@ $ bitcoind -daemon -testnet
 Start lightningd
 ```bash
 $ lightningd/lightningd --daemon --network=testnet
+```
 
 For more information on configuring lightningd please see [this](https://github.com/elementsProject/lightning#configuration-file) page
 
 #take address returned below and send testnet coins to that address at this website: https://testnet.manu.backend.hamburg/faucet, cannot fund a channel until this is confirmed on the network
+```bash
 $ cli/lightning-cli newaddr
 {
   "address": "[should be a bitcoin address here]"
 }
+```
 
 You will need to wait 3 confirmations for your transaction to confirm. You can monitor your transaction on [this](https://testnet.smartbit.com.au/) block explorer.
 
+```bash
 #connect to suredbits testnet lightning network node
 $ cli/lightning-cli connect 0338f57e4e20abf4d5c86b71b59e995ce4378e373b021a7b6f41dabb42d3aad069@ln.test.suredbits.com
 
