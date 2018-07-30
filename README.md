@@ -13,7 +13,31 @@ A drop-in solution for calling the [suredbits api](https://suredbits.com), built
 
 ## Getting Started
 
-Setup [c-lightning](https://github.com/ElementsProject/lightning#getting-started) and nodejs (v7.6 or newer), then:
+You need to install [nodejs](https://nodejs.org/en/) (v7.6 or newer) and [npm](https://www.npmjs.com/get-npm)
+
+## C-lightning installation instructions
+Note, that we currently need c-lightning version 0.6. Here is how to get c-lightning
+```
+    sudo apt-get update
+    sudo apt-get install -y \
+      autoconf automake build-essential git libtool libgmp-dev \
+      libsqlite3-dev python python3 net-tools zlib1g-dev
+    git clone https://github.com/ElementsProject/lightning.git
+    cd lightning
+    git fetch && git checkout v0.6
+    ./configure
+    make
+```
+
+## Running sb-api
+You need to edit your bitcoin.conf file and set the `rpcuser` and `rpcpassword` fields. Here is what your bitcoin.conf file should look like at minimum:
+```
+server=1
+testnet=1
+daemon=1
+```
+
+For more information on configuring bitcoind please see [this](https://en.bitcoin.it/wiki/Running_Bitcoin) page
 
 Start bitcoind
 ```bash
@@ -22,26 +46,32 @@ $ bitcoind -daemon -testnet
 
 Start lightningd
 ```bash
-$ lightningd --daemon --network=testnet
+$ lightningd/lightningd --daemon --network=testnet
+
+For more information on configuring lightningd please see [this](https://github.com/elementsProject/lightning#configuration-file) page
 
 #take address returned below and send testnet coins to that address at this website: https://testnet.manu.backend.hamburg/faucet, cannot fund a channel until this is confirmed on the network
-$ lightning-cli newaddr
+$ cli/lightning-cli newaddr
 {
   "address": "[should be a bitcoin address here]"
 }
 
+You will need to wait 3 confirmations for your transaction to confirm. You can monitor your transaction on [this](https://testnet.smartbit.com.au/) block explorer.
+
 #connect to suredbits testnet lightning network node
-$ lightning-cli connect 0338f57e4e20abf4d5c86b71b59e995ce4378e373b021a7b6f41dabb42d3aad069@ln.test.suredbits.com
+$ cli/lightning-cli connect 0338f57e4e20abf4d5c86b71b59e995ce4378e373b021a7b6f41dabb42d3aad069@ln.test.suredbits.com
 
 #open a channel with suredbits and fund that channel with 100,000 satoshis, note you need 1 confirmation on your testnet tx
-$ lightning-cli fundchannel 0338f57e4e20abf4d5c86b71b59e995ce4378e373b021a7b6f41dabb42d3aad069 100000
+$ cli/lightning-cli fundchannel 0338f57e4e20abf4d5c86b71b59e995ce4378e373b021a7b6f41dabb42d3aad069 100000
 
 ```
+
+You will need to wait 3 confirmations for your transaction to confirm. You can monitor channel funding transaction on [this](https://testnet.smartbit.com.au/) block explorer.
 
 ## Starting the API
 Note, that the channel needs to be in the state `CHANNELD_NORMAL` before you can start the client, you can check this with the following command
 ```bash 
-$ lightning-cli listpeers
+$ cli/lightning-cli listpeers
 {
   "peers": [
     {
@@ -65,7 +95,17 @@ $ lightning-cli listpeers
 
 Asuming that the channel is in state `CHANNELD_NORMAL`, we should be able to start your webserver and query our API!
 
+First let's clone the suredbits/lightning-charge project
+
+```bash 
+$ git clone https://github.com/SuredBits/lightning-charge.git
+$ cd lightning-charge
+$ git fetch && git checkout sb_api
+```
+
+Now that you have cloned and moved into the `lightning-charge` directory, we can install & start the API!
 ```bash
+$ npm install
 $ npm start 
 ```
 
@@ -75,22 +115,14 @@ You should expect output that looks something like this after 5 seconds:
 > lightning-charge@0.4.1 start /home/chris/dev/lightning-charge
 > bin/start.sh
 
-HTTP server running on localhost:9112
-packMessage stringify {"uuid":"72a8bcb0-935e-11e8-ac54-95d6b13b6261","channel":"info"}
-LN Invoice : {"uuid":"72a8bcb0-935e-11e8-ac54-95d6b13b6261","invoice":"lntb10n1pd4uztfpp59n5hzfjz7vrxx0fcp6svjc36e0t5yzhd57fk73pks8rehdsht9msdqqxqrrsskr4vz6xrxeh5656rh9wyakkxac7q0z8tql6rq2xqmw2cdg66776804sz74nqlwm2ydd5z4c0hufhajr7q4rqstsfz024wkkkkqav2kqpt2ypuh"}
+API Request:  {"uuid":"3daa1d60-9430-11e8-a087-d736f35db536","channel":"info"}
+
+LN Invoice : {"uuid":"3daa1d60-9430-11e8-a087-d736f35db536","invoice":"lntb10n1pd476tzpp5ejk020ds9cs7ulu80ecahnzwl6ngkym8kyl7a7n8h9ycguk8rzxsdqqxqrrssg09q7ya3vnec33z8rreynjkuse5frzws7rh505f2ucktv89tj0fykjvwpd68nczyejysrmtv7m5tv6d65has8we3tmyfjly0p2m02hsq4ygsxe"}
 
 
-API result: {"uuid":"72a8bcb0-935e-11e8-ac54-95d6b13b6261","data":{"version":"8","lastRosterDownload":"20180725T133922.245Z","seasonType":"Regular","seasonYear":2017,"week":"NflWeek17"}}
+API response: {"version":"8","lastRosterDownload":"20180730T185645.071Z","seasonType":"Regular","seasonYear":2017,"week":"NflWeek17"}
 
-LN Invoice Payment: {"id":6,"payment_hash":"2ce9712642f306633d380ea0c9623acbd7420aeda7936f443681c79bb6175977","destination":"0338f57e4e20abf4d5c86b71b59e995ce4378e373b021a7b6f41dabb42d3aad069","msatoshi":1000,"msatoshi_sent":1001,"timestamp":1532889449,"created_at":1532889449,"status":"complete","payment_preimage":"8f9f183c569117c83a6c41013c0f4d90c786fa4b83206217c0e158d3bde391e3","getroute_tries":1,"sendpay_tries":1,"route":[{"id":"0338f57e4e20abf4d5c86b71b59e995ce4378e373b021a7b6f41dabb42d3aad069","channel":"1356054:2387:0","msatoshi":1001,"delay":9}],"failures":[]}
-
-packMessage stringify {"uuid":"75a3d440-935e-11e8-ac54-95d6b13b6261","channel":"info"}
-LN Invoice : {"uuid":"75a3d440-935e-11e8-ac54-95d6b13b6261","invoice":"lntb10n1pd4uztwpp5jl6x8l6g00tmd5cm54wmm4gyvmr5ycw52cntt93s545d7dxtp8yqdqqxqrrsssx6wfydv6unyg3jp7g5njtd2ukhsf37ty9htgdv20yalpae4djz9jcfjukdv0gcczh9h87ru279axg8wrc90ad5dgygevqk39x2naagq28nghf"}
-
-
-API result: {"uuid":"75a3d440-935e-11e8-ac54-95d6b13b6261","data":{"version":"8","lastRosterDownload":"20180725T133922.245Z","seasonType":"Regular","seasonYear":2017,"week":"NflWeek17"}}
-
-LN Invoice Payment: {"id":7,"payment_hash":"97f463ff487bd7b6d31ba55dbdd50466c74261d45626b59630a568df34cb09c8","destination":"0338f57e4e20abf4d5c86b71b59e995ce4378e373b021a7b6f41dabb42d3aad069","msatoshi":1000,"msatoshi_sent":1000,"timestamp":1532889454,"created_at":1532889454,"status":"complete","payment_preimage":"0ed07559f23f50f840dcce06d79da2a579ddb093d2668b85576f8abf67c0f549","getroute_tries":1,"sendpay_tries":1,"route":[{"id":"0338f57e4e20abf4d5c86b71b59e995ce4378e373b021a7b6f41dabb42d3aad069","channel":"1356054:2387:0","msatoshi":1000,"delay":9}],"failures":[]}
+LN Invoice Payment: {"id":161,"payment_hash":"ccacf53db02e21ee7f877e71dbcc4efea68b1367b13feefa67b9498472c7188d","destination":"0338f57e4e20abf4d5c86b71b59e995ce4378e373b021a7b6f41dabb42d3aad069","msatoshi":1000,"msatoshi_sent":1002,"timestamp":1532979555,"created_at":1532979555,"status":"complete","payment_preimage":"cd5b2a1fcab30e5f267b99e76bff5392217bf4dbcfa148c80bf77c5cd43ea331","getroute_tries":1,"sendpay_tries":1,"route":[{"id":"0338f57e4e20abf4d5c86b71b59e995ce4378e373b021a7b6f41dabb42d3aad069","channel":"1356054:2387:0","msatoshi":1002,"delay":9}],"failures":[]}
 
 ```
 
