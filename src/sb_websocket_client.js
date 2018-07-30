@@ -32,7 +32,7 @@ module.exports = (ln) => {
     const payLoadP = invoiceP.then(() => createSyntheticRequest(wsp, invoiceId)); 
     const paidP = invoiceP.then(i => pay(i)); 
     paidP.then(p => console.log("LN Invoice Payment: " + JSON.stringify(p) + "\n"));
-    return payLoadP;
+    return payLoadP.then(payload => payload['data']);
   }
   
   const createSyntheticRequest = (wsp,uuid) => { 
@@ -46,7 +46,7 @@ module.exports = (ln) => {
 
   }
 
-  const pay = payload=> {
+  const pay = payload => {
     const invoice = payload['invoice'];
     var paid = null;
     try {
@@ -105,16 +105,42 @@ module.exports = (ln) => {
   
   const player = (wsp, lastname,firstname) => {
     const msg = {
-      "channel" : "players", 
-      "lastName" : lastname, 
-      "firstName" : firstname 
+      "channel" : "players",
+      "lastName" : lastname,
+      "firstName" : firstname
+    };
+    return sendMessage(wsp,msg);
+  }
+
+  const stats_game_player_id = (wsp, stat_type, gameid, playerid) => {
+    console.log("gameId: " + gameid);
+    const msg = {
+      "channel" : "stats",
+      "statType" : stat_type,
+      "gameId" : gameid,
+      "playerId" : playerid
+    };
+    return sendMessage(wsp,msg);
+  }
+
+  const stats_name_week = (wsp, stat_type, year, week, seasonPhase, lastname, firstname) => {
+    const msg = {
+      "channel" : "stats",
+      "statType" : stat_type,
+      "year" : year,
+      "week" : week,
+      "seasonPhase" : seasonPhase,
+      "lastName" : lastname,
+      "firstName" : firstname
     };
     return sendMessage(wsp,msg);
   }
   return { info, 
     team_roster, team_schedule, 
     games, realtime_games, 
-    player
+    player,
+    stats_game_player_id,
+    stats_name_week
   };
 
 }
