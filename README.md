@@ -29,6 +29,8 @@ Note, that we currently need c-lightning version 0.6. Here is how to get c-light
     make
 ```
 
+for mac you can follow the instructions [here](https://github.com/ElementsProject/lightning/blob/master/doc/INSTALL.md#to-build-on-macos)
+
 ## Running sb-api
 You need to edit your bitcoin.conf file and set the `rpcuser` and `rpcpassword` fields. Here is what your bitcoin.conf file should look like at minimum:
 ```
