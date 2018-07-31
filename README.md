@@ -53,7 +53,7 @@ For more information on configuring lightningd please see [this](https://github.
 
 #take address returned below and send testnet coins to that address at this website: https://testnet.manu.backend.hamburg/faucet, cannot fund a channel until this is confirmed on the network
 ```bash
-$ cli/lightning-cli newaddr
+$ cli/lightning-cli newaddr p2sh-segwit
 {
   "address": "[should be a bitcoin address here]"
 }
