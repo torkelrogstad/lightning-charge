@@ -29,7 +29,49 @@ Note, that we currently need c-lightning version 0.6. Here is how to get c-light
     make
 ```
 
-for mac you can follow the instructions [here](https://github.com/ElementsProject/lightning/blob/master/doc/INSTALL.md#to-build-on-macos)
+for mac you can follow the instructions [here](https://github.com/ElementsProject/lightning/blob/master/doc/INSTALL.md#to-build-on-macos).
+
+This is copied from the c-light macOS installation instructions
+
+To Build on macOS
+---------------------
+
+Assume you have Xcode and HomeBrew installed on your Mac.
+Get dependencies:
+
+    $ brew install autoconf automake libtool python3 gmp gnu-sed
+
+If you don't have bitcoind installed locally you'll need to install that
+as well:
+
+    $ brew install \
+    berkeley-db4 boost miniupnpc openssl pkg-config protobuf qt libevent
+    $ git clone https://github.com/bitcoin/bitcoin
+    $ cd bitcoin
+    $ ./autogen.sh
+    $ ./configure
+    $ make & make install
+
+Clone lightning:
+
+    $ git clone https://github.com/ElementsProject/lightning.git
+    $ cd lightning
+
+Build lightning:
+
+    $ ./configure
+    $ make
+
+Running lightning:
+
+**Note**: Edit your `~/Library/Application\ Support/Bitcoin/bitcoin.conf`
+to include `rpcuser=<foo>` and `rpcpassword=<bar>` first, you may also
+need to include `testnet=1`
+
+    bitcoind &
+    ./lightningd/lightningd &
+    ./cli/lightning-cli help
+
 
 ## Running sb-api
 You need to edit your bitcoin.conf file and set the `rpcuser` and `rpcpassword` fields. Here is what your bitcoin.conf file should look like at minimum:
