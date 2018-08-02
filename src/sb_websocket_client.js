@@ -28,10 +28,10 @@ module.exports = (ln) => {
     const uuidv1 = require('uuid/v1');
     const invoiceId = uuidv1();
     const invoiceP = wsp.sendRequest(msg, {requestId: invoiceId});
-    invoiceP.then(invoice => console.log("LN Invoice : " + JSON.stringify(invoice) + "\n"));
+    //invoiceP.then(invoice => console.log("LN Invoice : " + JSON.stringify(invoice) + "\n"));
     const payLoadP = invoiceP.then(() => createSyntheticRequest(wsp, invoiceId)); 
     const paidP = invoiceP.then(i => pay(i)); 
-    paidP.then(p => console.log("LN Invoice Payment: " + JSON.stringify(p) + "\n"));
+    //paidP.then(p => console.log("LN Invoice Payment: " + JSON.stringify(p) + "\n"));
     return payLoadP.then(payload => payload['data']);
   }
   
@@ -113,7 +113,6 @@ module.exports = (ln) => {
   }
 
   const stats_game_player_id = (wsp, stat_type, gameid, playerid) => {
-    console.log("gameId: " + gameid);
     const msg = {
       "channel" : "stats",
       "statType" : stat_type,
