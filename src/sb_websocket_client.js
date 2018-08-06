@@ -48,6 +48,7 @@ module.exports = (ln) => {
 
   const pay = payload => {
     const invoice = payload['invoice'];
+    //console.log("invoice " + invoice);
     var paid = null;
     try {
       paid = ln.pay(invoice);
@@ -102,6 +103,23 @@ module.exports = (ln) => {
     };
     return sendMessage(wsp,msg);
   }
+
+  const games_this_week = (wsp) => {
+    //{"version":"8","lastRosterDownload":"20180801T153829.816Z","seasonType":"Regular","seasonYear":2017,"week":"NflWeek17"}
+    const metaP = info(wsp);
+    const thisWeek = metaP
+      .then(m => games(wsp,
+        parseWeek(m['week']),
+        m['seasonType'],
+        m['seasonYear']));
+
+    return thisWeek;
+  }
+
+  const games_today = (wsp) => {
+    const this_weekP = games_this_week(wsp);
+    return this_weekP.then(this_week => filter_today(this_week));
+  }
   
   const player = (wsp, lastname,firstname) => {
     const msg = {
@@ -134,9 +152,39 @@ module.exports = (ln) => {
     };
     return sendMessage(wsp,msg);
   }
+
+  /** Currently the api returns in the format of 'NflWeekX'
+    * This is really annoying, this breaks on the 'k' in week
+    * and then parses the number
+    */
+  function parseWeek(week) {
+    const weekString = week.split('k')[1];
+    return parseInt(weekString);
+  }
+
+  /** Takes in a list of games and finds ones that happenign today */
+  function filter_today(this_week) {
+    const today = new Date()
+    const timezoneOffset = today.getTimezoneOffset();
+    var gamesToday = [];
+    for (var i = 0; i < this_week.length; i++) {
+      var date = new Date(this_week[i]['startTime']);
+
+      //convert UTC timezone to user's timezone
+      //so they see expected games
+      const locale = date.toLocaleDateString();
+
+      if (locale === today.toDateString()) {
+        gamesToday += this_week[i];
+      }
+    }
+
+    return gamesToday;
+  }
+
   return { info, 
     team_roster, team_schedule, 
-    games, realtime_games, 
+    games, realtime_games, games_this_week, games_today,
     player,
     stats_game_player_id,
     stats_name_week
