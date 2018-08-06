@@ -57,18 +57,18 @@ module.exports = (app, payListen, ln) => {
     function loop(wsp) {
       //first one request initially, and then wait 30 seconds to query our api repeatedly
       joe_flacco_stats_this_week()
-        .then(msg => console.log("\nJoe Flacco stats: " + JSON.stringify(msg) + "\n"));
+        .then(msg => console.log("\nJoe Flacco stats: " + json_to_string(msg) + "\n"));
 	
       mitchell_trubisky_stats_this_week()
-        .then(msg => console.log("\nMitchell Trubisky stats: " + JSON.stringify(msg) + "\n"));
+        .then(msg => console.log("\nMitchell Trubisky stats: " + json_to_string(msg) + "\n"));
       setInterval(function () {
 	//Uncomment next two lines if you want to look at tom brady's super bowl stats
         
 	joe_flacco_stats_this_week()
-          .then(msg => console.log("\nJoe Flacco stats: " + JSON.stringify(msg) + "\n"));
+          .then(msg => console.log("\nJoe Flacco stats: " + json_to_string(msg) + "\n"));
 	
 	mitchell_trubisky_stats_this_week()
-	  .then(msg => console.log("\nMitchell Trubisky stats: " + JSON.stringify(msg) + "\n"));
+          .then(msg => console.log("\nMitchell Trubisky stats: " + json_to_string(msg) + "\n"));
 
 	//sb_client.info(wsp).then(msg => console.log("\nAPI response: " + JSON.stringify(msg) + "\n"));
 
@@ -129,6 +129,10 @@ module.exports = (app, payListen, ln) => {
     function parseWeek(week) {
       const weekString = week.split('k')[1];
       return parseInt(weekString);
+    }
+
+    function json_to_string(stats) { 
+      return JSON.stringify(stats,null,' ');
     }
   }
 

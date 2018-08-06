@@ -15,6 +15,8 @@ A drop-in solution for calling the [suredbits api](https://suredbits.com), built
 
 You need to install [nodejs](https://nodejs.org/en/) (v7.6 or newer) and [npm](https://www.npmjs.com/get-npm)
 
+NOTE: Be careful when installing nodejs from package managers like `apt`, you may install a version that is outdated. This is the case for Ubuntu 16.04.
+
 ## C-lightning installation instructions
 Note, that we currently need c-lightning version 0.6. Here is how to get c-lightning
 ```
@@ -31,7 +33,7 @@ Note, that we currently need c-lightning version 0.6. Here is how to get c-light
 
 for mac you can follow the instructions [here](https://github.com/ElementsProject/lightning/blob/master/doc/INSTALL.md#to-build-on-macos).
 
-This is copied from the c-light macOS installation instructions
+This is copied from the c-lightning macOS installation instructions
 
 To Build on macOS
 ---------------------
@@ -95,7 +97,8 @@ $ lightningd/lightningd --daemon --network=testnet
 
 For more information on configuring lightningd please see [this](https://github.com/elementsProject/lightning#configuration-file) page
 
-#take address returned below and send testnet coins to that address at this website: https://testnet.manu.backend.hamburg/faucet, cannot fund a channel until this is confirmed on the network
+take address returned below and send testnet coins to that address at this website: https://testnet.manu.backend.hamburg/faucet, cannot fund a channel until this is confirmed on the network
+
 ```bash
 $ cli/lightning-cli newaddr p2sh-segwit
 {
