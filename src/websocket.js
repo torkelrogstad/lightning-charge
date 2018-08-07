@@ -64,8 +64,12 @@ module.exports = (app, payListen, ln) => {
     };
 
     function content() {
-      sb_client.games_today(wsp)
-        .then(msg => console.log("Scoreboard: " + json_to_string(msg) + "\n"));
+
+      const scoreboard = sb_client.realtime_games(wsp)
+      .then(realtime => games_today_if_no_realtime(realtime))
+      .then(games => games_this_week_if_none_today(games));
+
+      scoreboard.then(msg => console.log("Scoreboard: " + json_to_string(msg) + "\n"));
     }
 
     function tom_brady_superbowl_stats() {
@@ -125,6 +129,26 @@ module.exports = (app, payListen, ln) => {
 
     function json_to_string(stats) { 
       return JSON.stringify(stats,null,' ');
+    }
+
+    /** Queries for games today if no real time games given */
+    function games_today_if_no_realtime(games) {
+      //if no games are currently on going
+      //show games today
+      if (games.length == 0) {
+        return sb_client.games_today(wsp);
+      } else {
+        return realtime;
+      }
+    }
+
+    function games_this_week_if_none_today(games) {
+      //if no games are going on today, get the games this week
+      if (games.length == 0) {
+        return sb_client.games_this_week(wsp);
+      } else {
+        return games;
+      }
     }
   }
 
