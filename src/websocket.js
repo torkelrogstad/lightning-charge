@@ -27,7 +27,7 @@ module.exports = (app, payListen, ln) => {
   const start = _ => {
     const sb_client = require('./sb_websocket_client.js')(ln);
     const uuidv1 = require('uuid/v1');
-    const wsUrl = "wss://test.api.suredbits.com/nfl/v0"; 
+    const wsUrl = "wss://test.api.suredbits.com/nfl/v0";
     const client = new W3CWebSocket(wsUrl);
     const wsp = new WebSocketAsPromised(wsUrl, {
       createWebSocket: url => new W3CWebSocket(url),
@@ -54,26 +54,23 @@ module.exports = (app, payListen, ln) => {
     wsp.open()
     .then(() => loop(wsp))
 
+
     function loop(wsp) {
-      //first one request initially, and then wait 30 seconds to query our api repeatedly
-      joe_flacco_stats_this_week()
-        .then(msg => console.log("\nJoe Flacco stats: " + json_to_string(msg) + "\n"));
-	
-      mitchell_trubisky_stats_this_week()
-        .then(msg => console.log("\nMitchell Trubisky stats: " + json_to_string(msg) + "\n"));
+      content();
       setInterval(function () {
-	//Uncomment next two lines if you want to look at tom brady's super bowl stats
-        
-	joe_flacco_stats_this_week()
-          .then(msg => console.log("\nJoe Flacco stats: " + json_to_string(msg) + "\n"));
-	
-	mitchell_trubisky_stats_this_week()
-          .then(msg => console.log("\nMitchell Trubisky stats: " + json_to_string(msg) + "\n"));
+	content();
+      },10000)
 
-	//sb_client.info(wsp).then(msg => console.log("\nAPI response: " + JSON.stringify(msg) + "\n"));
-
-	},30000)
     };
+
+    function content() {
+
+      const scoreboard = sb_client.realtime_games(wsp)
+      .then(realtime => games_today_if_no_realtime(realtime))
+      .then(games => games_this_week_if_none_today(games));
+
+      scoreboard.then(msg => console.log("Scoreboard: " + json_to_string(msg) + "\n"));
+    }
 
     function tom_brady_superbowl_stats() {
       const player = sb_client.player(wsp, "Brady", "Tom");
@@ -91,17 +88,8 @@ module.exports = (app, payListen, ln) => {
       return result;
     }
 
-    function joe_flacco_stats_this_week() { 
-      return player_stats_this_week("Flacco", "Joe", "passing");
-    }
-
-    function mitchell_trubisky_stats_this_week() {
-      return player_stats_this_week("Trubisky", "Mitchell", "passing");
-    }
-  
     /** Returns the player's stats for the given week */
     function player_stats_this_week(lastname, firstname, stattype) { 
-      //{"version":"8","lastRosterDownload":"20180801T153829.816Z","seasonType":"Regular","seasonYear":2017,"week":"NflWeek17"}
       const playerP = sb_client.player(wsp, lastname, firstname);
       const metaP = sb_client.info(wsp);
       const gameP =  metaP.then(m => sb_client.games(
@@ -126,6 +114,14 @@ module.exports = (app, payListen, ln) => {
       return stats;
     }
 
+    function joe_flacco_stats_this_week() {
+      return player_stats_this_week("Flacco", "Joe", "passing");
+    }
+
+    function mitchell_trubisky_stats_this_week() {
+      return player_stats_this_week("Trubisky", "Mitchell", "passing");
+    }
+
     function parseWeek(week) {
       const weekString = week.split('k')[1];
       return parseInt(weekString);
@@ -133,6 +129,26 @@ module.exports = (app, payListen, ln) => {
 
     function json_to_string(stats) { 
       return JSON.stringify(stats,null,' ');
+    }
+
+    /** Queries for games today if no real time games given */
+    function games_today_if_no_realtime(games) {
+      //if no games are currently on going
+      //show games today
+      if (games.length == 0) {
+        return sb_client.games_today(wsp);
+      } else {
+        return realtime;
+      }
+    }
+
+    function games_this_week_if_none_today(games) {
+      //if no games are going on today, get the games this week
+      if (games.length == 0) {
+        return sb_client.games_this_week(wsp);
+      } else {
+        return games;
+      }
     }
   }
 
