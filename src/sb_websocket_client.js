@@ -92,16 +92,13 @@ module.exports = (ln) => {
     return sendMessage(wsp,msg);
   }
 
-  const realtime_games = (wsp, week, seasonPhase,year,teamId) => { 
-    const msg = {
-      "channel" : "games",
-      "week" : week,
-      "seasonPhase" : seasonPhase,
-      "year" : year,
-      "teamId": teamId,
-      "realtime" : true,
-    };
-    return sendMessage(wsp,msg);
+  const realtime_games = (wsp, teamId) => {
+    const metaP = info(wsp);
+    const games = metaP.then(meta =>
+      sendMessage(wsp,build_realtime_msg(meta,teamId))
+    )
+
+    return games;
   }
 
   const games_this_week = (wsp) => {
@@ -180,6 +177,19 @@ module.exports = (ln) => {
     }
 
     return gamesToday;
+  }
+
+  function build_realtime_msg(meta,teamId) {
+    const msg = {
+      "channel" : "games",
+      "week" : parseWeek(meta['week']),
+      "seasonPhase" : meta['seasonType'],
+      "year" : meta['seasonYear'],
+      "teamId": teamId,
+      "realtime" : true,
+    };
+
+    return msg;
   }
 
   return { info, 
