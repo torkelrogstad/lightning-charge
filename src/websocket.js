@@ -138,7 +138,7 @@ module.exports = (app, payListen, ln) => {
       if (games.length == 0) {
         return sb_client.games_today(wsp);
       } else {
-        return realtime;
+        return games;
       }
     }
 
